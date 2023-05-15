@@ -23,19 +23,19 @@ More details in [White Paper](http://binance.org/en#smartChain).
 
 ## Functionalities
 
-Embedded a custom storage key tracer that returned storage keys looked up during a contract function execution, e.g., fetching the storage key for reserve values for an LP. Tracers are executed by pointing RPC calls to the debug namespace.
+Embedded a custom storage key tracer that returns storage keys looked up during contract function execution and is executed by pointing RPC calls to the debug namespace. For example, fetching the storage key for reserve values for an LP.
 
-Ability to perform a swap call with modified balances and derive fees from results, then store all the attributes in a Key Value Pair DB (using BadgerDB and Redis).
+Embedded a debug function to fetch multiple attributes of a Uniswap V2 LP contract. "debug_fetchSloadValues" can be easily called via RPC.
 
-Ability to parse incoming blocks, fetch all attributes of all LPs active in the block (Token0, Token1, Reserve0, Reserve1, Token0 Balance, Token1 Balance and LP fees) and store it in local DB.
+Embedded a go-EVM interpreter component that returns what the storage keys and values were whenever the EVM interpreter encounters a SLOAD operation. This is achieved by cloning the Run() function and inserting a "SLOAD" detector in core/vm/interpreter.go. The run() and Call() functions in core/vm/evm.go are also cloned, and the CustomSloadCall function calls customsloadrun() within the usual Call() function to call RunWithSloadResults(). The key and value maps can then be returned. To ensure that the key and value maps are returned via available RPC calls (e.g., eth_call()), TransitionDb() and ApplyMessage() in core/state_transition.go must also be cloned.
 
-Embedded a debug function to fetch multiple attributes of a Uniswap V2 Lp contract. “debug_fetchSloadValues” can be simply called via RPC.
+Ability to subscribe to a list of Uniswap V2 LP clones and their latest attributes (reserves, balance, fees, etc.) extracted from new and old headers.
 
-Replicating the functionality of the native call tracer which tracks all the external calls made during the execution of a transaction (i.e. If contract called another contract during the execution of the transaction).
+Ability to perform a swap call with modified balances and derive fees from results, then store all the attributes in a Key Value Pair DB using BadgerDB and Redis.
 
-Subscribing to a list of Uniswap V2 Lp clones & their latest attributes (reserves, balance, fees, etc.) extracted from new & old headers.
+Ability to parse incoming blocks, fetch all attributes of all LPs active in the block (Token0, Token1, Reserve0, Reserve1, Token0 Balance, Token1 Balance, and LP fees), and store them in a local DB.
 
-Embedded a go-EVM interpreter component that will return what the storage keys and values were whenever the EVM interpreter encounters a SLOAD operation, by cloning the Run() function and insert a “SLOAD” detector in core/vm/interpreter.go; and cloning run() and Call() function in core/vm/evm.go. Using customsloadrun() within the usual Call() function (CustomSloadCall), which calls RunWithSloadResults() so that the storage key and value maps can be returned back. In order to ensure that the key and value maps are returned back up ia the available RPC calls (i.e. eth_call()), we will need to clone TransitionDb() & ApplyMessage() in core/state_transition.go.
+Replicate the functionality of the native call tracer that tracks all the external calls made during the execution of a transaction (e.g., if a contract calls another contract during the execution of the transaction (proxy contract)).
 
 ## License
 
